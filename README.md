@@ -16,6 +16,20 @@ print "$_ => $hash{$_}\n" for keys %hash; # use $ to get scalar from hash not % 
 print join(", ", @$scalar_arr), "\n";
 ```
 
+strings
+```
+$_ = 3;
+print 'bruh $_'; # "bruh $_"
+print "bruh $_"; # "bruh 3"
+
+@A = split / /, "i like           chicken";
+@A = qq(@A);
+print "@A"; # "i like           chicken"
+
+@A = <@A>; # glob
+print "@A"; # "i like chicken"
+```
+
 regex (there are definitely lots more tricks but i don't know them yet)<br>
 check out the variable section after for some more regex tricks<br>
 this is mostly recap and important stuff for golf<br>
@@ -569,6 +583,21 @@ $a = 3;
 print ($a += 3), "nice" # "6"
 print(($a += 3),"nice") # lonq version
 print+($a += 3),"nice" # "6nice"
+
+eval
+# interprets a string as if it was perl code injected in the current spot
+# useful if you want to use $_ & regex without for loop reassigning
+# also useful if you want to inject variables as operators, literals, etc
+
+eval '$- += 30' x 5;
+print $-; # "150"
+
+# variable inject example
+$_ = "aab"
+/(.)(?!\1)(.)/;
+eval'y/$1$2/$2$1/'; # won't work will interpret as literal $1$2
+eval"y/$1$2/$2$1/";
+print # "baa"
 ```
 
 misc
@@ -593,4 +622,9 @@ lvalue
 # ternary binds $a and $b as lvalue so it will actually look like print + (/n/ ? $a : $b) *= 3;
 # can usually solve with brackets
 $a += 3, print /n/ ? $a : $b *= 3 for <>; 
+```
+
+tips to reading perl
+```
+<>;$-*=for<>
 ```
