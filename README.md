@@ -12,7 +12,7 @@ $scalar_arr = [63, 524]; # not really useful at the moment but it will get its t
 
 print $scalar, "\n";
 print join(", ", @arr), "\n";
-print "$_ => $hash{$_}\n" for keys %hash;
+print "$_ => $hash{$_}\n" for keys %hash; # use $ to get scalar from hash not % (same w/ array)
 print join(", ", @$scalar_arr), "\n";
 ```
 
@@ -456,6 +456,18 @@ $, = $/;
 
 built-in functions
 ```pl
+reverse
+
+# reverses scalar and array
+# kindy finnicky with scalar might need to ~~ it
+
+print reverse "bruh"; # "bruh"
+print ~~reverse "bruh"; # "hurb"
+
+print reverse "bruh", "yeet"; # "yeetbruh"
+
+# --------------------------------------------
+
 sort
 
 # defaults to string sort like js
@@ -466,10 +478,13 @@ print sort @A # "123,chicken,finger"
 
 $, = ",";
 @A = (63, 1, 2, 3);
+
 @A = sort{$b <=> $a}@A # @A => (63, 3, 2, 1)
 
 # can usually get away with - but i think there was one time it didn't work idk
 @A = sort{$b-$a}@A # @A => (63, 3, 2, 1)
+
+# --------------------------------------------
 
 map
 
@@ -492,4 +507,90 @@ map $_+3, 1,2,3
 map $a=3,$_+$a, 1,2,3 # bad
 map ($a+=3)+$_, 1..3 # bad
 map $_+($a+=3), 1..3 # good
+
+# can also use the // trick but not as common as `for` as the outer block as that is usually shorter
+$_ = <>;
+@A = map{$- += $_ for $'..99} //..3
+
+# --------------------------------------------
+
+chomp
+# kills a single trailing newline
+# basically just $var =~ s/\n$//
+# useful because perl input includes the $/ value if there is one
+# returns the amount of lines chomped
+
+# stdin: "bruh\nchicken\n"
+chomp, $\ .= $_ for<>; print # "bruhchicken"
+
+# stdin: "bruh\negg"
+e=<>;
+print $e # "bruh\n"
+
+chomp($e=<>);
+print $e # "bruh"
+
+# also useful for lists
+# <> can be scalar / array depending on context
+@A=<>;
+print "@A" # "bruh\n egg"
+
+chomp(@A=<>);
+print "@A" # "bruh egg"
+
+
+# chomp returns the amount of lines chomped
+# maybe useful if you need amount of lines or something while also assigning chomped values
+# stdin: "bruh\negg\nneat"
+print chomp(($n,@A)=<>); # 2
+
+# --------------------------------------------
+
+chop
+# similar to chomp
+# $var =~ s/.$//s
+# not really that useful unless you want to delete the last char whilst returning it
+# can also use on lists
+
+# --------------------------------------------
+
+do
+
+# usually use this in ternaries when im doing testing and need multiple statements
+
+/n/ ? do {$- += 1; $f += $-} : 0 for<>;
+
+# --------------------------------------------
+
+print
+# print stuff
+# if you have brackets right next to print you need to use + to lower print precedence
+$a = 3;
+print ($a += 3), "nice" # "6"
+print(($a += 3),"nice") # lonq version
+print+($a += 3),"nice" # "6nice"
+```
+
+misc
+```pl
+}{
+
+# eskimo greeting operator
+# useful when you have perl command line flags -n or -p
+# no eskimo -n for(<>) {code1}
+# eskimo -n for(<>) {code1 }{ code2}
+# with -p for(<>) {code1 }{ code2; print}
+
+# sum of inputs
+#!perl -p
+$\+=$_ }{
+
+# --------------------------------------------
+
+lvalue
+
+# another source of bugs
+# ternary binds $a and $b as lvalue so it will actually look like print + (/n/ ? $a : $b) *= 3;
+# can usually solve with brackets
+$a += 3, print /n/ ? $a : $b *= 3 for <>; 
 ```
