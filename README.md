@@ -1,3 +1,4 @@
+## curently WIP
 perl is a trash language but it's fun to golf in, because you can shoot yourself in the foot super easily and nobody can read it, well, except for you after this hopefully<br>
 this is intended mostly for beginners cuz if you are pro perl golfer then will probably know all of these<br>
 you must practice or else you will probably forget everything cause there is way too many things in perl<br>
@@ -625,6 +626,45 @@ $a += 3, print /n/ ? $a : $b *= 3 for <>;
 ```
 
 tips to reading perl
-```
-<>;$-*=for<>
+you will be able to do these steps in your head as you get better
+```pl
+# example code
+$_=<>;eval's/(.)\1+//g;'x999;print
+
+# separate it out by semicolon / }
+
+$_=<>;
+eval's/(.)\1+//g;'x999;
+print
+
+# add whitespace / brackets back
+$_ = <>;
+eval ('s/(.)\1+//g;' x 999);
+print
+
+# wow now you know that the code will read input into $_
+# delete consecutive chars but leave singleton chars
+# do that 999 times
+# then implicitly print the $_ variable
+# you are now perl pro
+
+# --------------------------------------------
+
+# example code 2
+
+<>;s/(.)(.)/$-+=$1*$2+$_/ge,print$-,$/for<>
+
+
+# expand for loops into their block form
+<>;
+for (<>) {
+  s/(.)(?=.)/$- += $1 * $2 + $_/ge;
+  print $-, $/
+}
+
+# wow now you know it will throw away first input
+# sub used for looping this time since we dont need $_ later
+# loop over $_ implicitly with adjacent digits globally (g flag)
+# add to $- variable with some math involving match groups (e flag evals the replacement)
+# print the intermediate sums (previous sums + current sum) plus the newline
 ```
