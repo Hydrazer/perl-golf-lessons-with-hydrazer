@@ -10,15 +10,17 @@ $scalar = 3;
 @arr = (63, 520);
 %hash = ("bruh" => 3, "nice" => 2);
 $scalar_arr = [63, 524]; # not really useful at the moment but it will get its time to shine
+${-34 - 35} = 3; # can also use evaluated strings as variables
 
 print $scalar, "\n";
 print join(", ", @arr), "\n";
 print "$_ => $hash{$_}\n" for keys %hash; # use $ to get scalar from hash not % (same w/ array)
 print join(", ", @$scalar_arr), "\n";
+print ${-69} # "3"
 ```
 
 strings
-```
+```pl
 $_ = 3;
 print 'bruh $_'; # "bruh $_"
 print "bruh $_"; # "bruh 3"
@@ -300,6 +302,7 @@ $-
 # always integer
 # holds value of 0 default
 # will never go below 0
+# can maybe replace |0 (int) but i can't think of something rn 
 
 $- -= 1; # 0
 $- += 3 / 4; # 0
@@ -336,9 +339,21 @@ print bruh 100, 5 # 20
 
 $a $b
 # variables used in sorting
-# why did perl do this? i have no idea (foot shooter)
+# why did perl do this? i have no idea (foot shooter with `my` declaration)
 
 print sort {$a-$b} "32", "chicken" # chicken32
+
+my $a = 3;
+print sort {$a-$b} 1..5; "21354"
+
+# --------------------------------------------
+
+%!
+# just found this one today lol while looking through golf shinh sols
+# hashmap with a lot of items
+
+$\+=$_ for<>;print
+$\+=<>for%!;print # shorter
 
 # --------------------------------------------
 
@@ -347,11 +362,16 @@ $=
 # holds value of 60
 # useful for time problems (60 seconds, 60 minutes)
 # same as $- except can also hold negative numbers
+# replacement for int function
 
 # stdin: "3\n23\n2\n22"
 <>;
 print 60*(32+$_)for<>;
 print$=*(32+$_)for<>; # shorter way
+
+print int-5.3;
+print$-=-5.3; # shorter
+print-5.3|0; # doesn't work cuz of twos complement or something
 
 # --------------------------------------------
 
@@ -450,6 +470,7 @@ $( $)
 ```
 
 for loops (never use foreach cuz it sucks)
+another foot shooter
 ```pl
 # get all input and do math on them, newline separated
 foreach $a (<>){print $a + 3, "\n"}
@@ -467,6 +488,20 @@ print $_ + $', $/for//..99;
 # another example of using it inside the for loop w/ map
 $, = $/;
 //, print map $_ + $', 1..$' for 1..99;
+
+# if the first input is 0 in a <> <> range you may run into some trouble because it will try to do character range with "0\n"
+# idk why this doesn't do the same with other numbers
+
+# stdin "0\n5"
+print$_, $/ for<>..<> # ""
+print$_, $/ for<>|0..<> # "0\n1\n2\n3\n4\n5\n"
+
+# stdin "1\n5"
+print$_, $/ for<>..<> # "1\n2\n3\n4\n5"
+
+# using `my` (local scope declaration) for variable reset
+(@A=()), push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
+my@A, push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
 ```
 
 built-in functions
@@ -619,10 +654,15 @@ $\+=$_ }{
 
 lvalue
 
-# another source of bugs
+# another foot shooter
 # ternary binds $a and $b as lvalue so it will actually look like print + (/n/ ? $a : $b) *= 3;
 # can usually solve with brackets
-$a += 3, print /n/ ? $a : $b *= 3 for <>; 
+$a += 3, print /n/ ? $a : $b *= 3 for <>; # bad
+$a += 3, print /n/ ? $a : ($b *= 3) for <>; # good
+
+# this can also be used to your advantage
+${--$| ? a : b} += <> for %!; print "$a $b"
+--$| ? $a : $b += <> for %!; print "$a $b" # shorter
 ```
 
 tips to reading perl
