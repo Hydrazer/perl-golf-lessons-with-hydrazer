@@ -1,8 +1,33 @@
 ## curently WIP
-perl is a trash language but it's fun to golf in, because you can shoot yourself in the foot super easily and nobody can read it, well, except for you after this hopefully<br>
+perl is a trash language but it's fun to golf in, because you can shoot yourself in the foot super easily or use the terrible features to your advantage, and nobody can read it, well, except for you after this hopefully<br>
 this is intended mostly for beginners cuz if you are pro perl golfer then will probably know all of these<br>
 you must practice or else you will probably forget everything cause there is way too many things in perl<br>
 also plz tell me more tricks so i can add them here
+
+preface
+```pl
+# include this at the top of the file if you are a beginner until you have completed your initial solution
+# this will force you to write "good perl" and so you won't foot shoot yourself too badly
+use Moose;
+
+# if your platform doesn't support Moose try
+use warnings;
+use diagnostics;
+use strict;
+
+# can also include this so you can use "say" it's just print but with newline
+# easier to debug stuff since you dont need to reassign $\ or put $/ at the end of each print
+use 5.01;
+
+say "ebic";
+say "ebic";
+
+# alternatively use Dumper which will probably be even better for debugging
+use Dumper;
+
+my %h = qw(1 2 3 4);
+print Dumper %h
+```
 
 variables
 ```pl
@@ -16,7 +41,7 @@ print $scalar, "\n";
 print join(", ", @arr), "\n";
 print "$_ => $hash{$_}\n" for keys %hash; # use $ to get scalar from hash not % (same w/ array)
 print join(", ", @$scalar_arr), "\n";
-print ${-69} # "3"
+print $$_ for -100 .. 0; # "3"
 ```
 
 strings
@@ -31,11 +56,18 @@ print "@A"; # "i like           chicken"
 
 @A = <@A>; # glob
 print "@A"; # "i like chicken"
+
+# using literal newline
+
+print "$a -- $e$/";
+print "$a -- $e\n";
+print "$a -- $e
+"; # shorter
 ```
 
 regex (there are definitely lots more tricks but i don't know them yet)<br>
+this is a huge foot shooter so be careful<br>
 check out the variable section after for some more regex tricks<br>
-this is mostly recap and important stuff for golf<br>
 this probably wont' teach you anything if you don't already know regex so maybe try [https://perldoc.perl.org/perlretut](https://perldoc.perl.org/perlretut) then practice on [https://regexcrossword.com/](https://regexcrossword.com/) and [https://regexr.com/](https://regexr.com/)<br>
 try to find your own tricks then tell me them so i can add them here [https://perldoc.perl.org/perlre](https://perldoc.perl.org/perlre)
 
@@ -85,6 +117,20 @@ print /n/ ? "there is n" : "no n";
 # negate match (truthy when no match)
 $_ = "chicken";
 print $_ !~ /n/ ? "no n" : "there is no n";
+
+# foot shooting example with BOOBA
+$_ = <>;
+/(.)(.)/;
+print $1 =~ /e/ ? $1 : $2 # will print "" since $1 & $2 are reassigned on the match (same with s///) use eq or assign match
+
+$_ = <>;
+($a, $b) = /(.)(.)/; # bad
+($a, $b) = () = /(.)(.)/; # need to cast to array first or it will treat as scalar
+print $a =~ /e/ ? $a : $b # good
+
+# cool sliding window using match eval
+"123456" =~ /...(?{print "$&
+"})^/ # "123\n234\n345\n456\n"
 ```
 
 substitution
@@ -129,10 +175,14 @@ print s/n/"g"/egirl # "giceg"
 $_ = "nnicenn";
 print s/nn/g/g, $/, $_ # "2\ngniceg"
 
+# you can eval without modifying the varaible
+$_ = "sheesh";
+s/./$e .= $& . e/ger;
+print; # "sheesh"
 ```
 
 translate (tr is the same as y)
-you can negate this one too but i never used it
+you can negate this one with !~ as well but i never used it
 ```pl
 $_ = "nice";
 y/n/c/;
@@ -157,12 +207,6 @@ print $_ =~ y/n//d; # 4
 # squash your stuff (not needed too commonly)
 $_ = "nniiiiiiceeeee";
 print $_ =~ y/n//crs; # nnice
-
-# --------------------------------------------
-
-# cool sliding window using match eval
-"123456" =~ /...(?{print "$&
-"})^/ # "123\n234\n345\n456\n"
 ```
 
 special variables from most to least useful (how common it can be used to reduce code)<br>
@@ -343,8 +387,9 @@ $a $b
 
 print sort {$a-$b} "32", "chicken" # chicken32
 
+# only really happens in for / map / subroutine
 my $a = 3;
-print sort {$a-$b} 1..5; "21354"
+print sort {$a-$b} 1..5; # "21354"
 
 # --------------------------------------------
 
@@ -498,14 +543,24 @@ print$_, $/ for<>|0..<> # "0\n1\n2\n3\n4\n5\n"
 
 # stdin "1\n5"
 print$_, $/ for<>..<> # "1\n2\n3\n4\n5"
-
-# using `my` (local scope declaration) for variable reset
-(@A=()), push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
-my@A, push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
 ```
 
-built-in functions
+built-in functions<br>
+there are more but these are the useful ones i've found<br>
+read more here [https://perldoc.perl.org/functions](https://perldoc.perl.org/functions)
 ```pl
+glob
+
+# splits a string into an array
+# doesn't really work if you have {} or * in the string in it since it's the same as bash glob
+
+@A = split /\s*/, <>
+@A = glob <>; # shorter
+
+@A = glob `dd`;
+
+# --------------------------------------------
+
 reverse
 
 # reverses scalar and array
@@ -552,7 +607,8 @@ map
 @A = (323, 3, 432, 5);
 @A = map {$_ + 6 unless $_ <= 5} @A # @A => (329, 1, 438, 1);
 
-# you can replace the {} with , IF YOU DONT HAVE ANY OTHER EXPRESSIONS INSIDE AND NO BRACKETS EITHER RIGHT NEXT TO THE MAP
+# you can replace the {} with ,
+# ONLY IF YOU DONT HAVE ANY OTHER EXPRESSIONS INSIDE AND NO BRACKETS EITHER RIGHT NEXT TO THE MAP
 map $_+3, 1,2,3
 map $a=3,$_+$a, 1,2,3 # bad
 map ($a+=3)+$_, 1..3 # bad
@@ -620,6 +676,12 @@ print ($a += 3), "nice" # "6"
 print(($a += 3),"nice") # lonq version
 print+($a += 3),"nice" # "6nice"
 
+# --------------------------------------------
+
+printf
+
+# --------------------------------------------
+
 eval
 # interprets a string as if it was perl code injected in the current spot
 # useful if you want to use $_ & regex without for loop reassigning
@@ -634,6 +696,50 @@ $_ = "aab"
 eval'y/$1$2/$2$1/'; # won't work will interpret as literal $1$2
 eval"y/$1$2/$2$1/";
 print # "baa"
+
+# --------------------------------------------
+
+vec
+
+# --------------------------------------------
+
+pack
+
+# --------------------------------------------
+
+unpack
+
+# --------------------------------------------
+
+lc / uc / ucfirst / lcfirst
+
+# --------------------------------------------
+
+pop / shift
+
+# --------------------------------------------
+
+keys
+
+# --------------------------------------------
+
+hex / oct
+
+# --------------------------------------------
+
+sqrt
+
+# --------------------------------------------
+
+pos
+
+# --------------------------------------------
+
+chr / ord
+
+# --------------------------------------------
+
+sin / cos / log
 ```
 
 misc
@@ -660,9 +766,32 @@ lvalue
 $a += 3, print /n/ ? $a : $b *= 3 for <>; # bad
 $a += 3, print /n/ ? $a : ($b *= 3) for <>; # good
 
+
 # this can also be used to your advantage
 ${--$| ? a : b} += <> for %!; print "$a $b"
 --$| ? $a : $b += <> for %!; print "$a $b" # shorter
+
+# --------------------------------------------
+
+my 
+# local varaible declaration
+
+# variable reset
+(@A=()), push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
+my@A, push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
+
+# recursion
+sub fib {
+  $n = pop;
+  $n < 2 ? $n : fib ($n - 1) + fib ($n - 2)
+}
+print fib 3 # "-3" # nani?!?!??!?!
+
+sub fib {
+  my $n = pop;
+  $n < 2 ? $n : fib ($n - 1) + fib ($n - 2)
+}
+print fib 3 # "2" # will treat $n as a global variable unless you explicitly say it's not
 ```
 
 tips to reading perl
