@@ -41,7 +41,7 @@ print $scalar, "\n";
 print join(", ", @arr), "\n";
 print "$_ => $hash{$_}\n" for keys %hash; # use $ to get scalar from hash not % (same w/ array)
 print join(", ", @$scalar_arr), "\n";
-print $$_ for -100 .. 0; # "3"
+print $$_ for -100 .. 0; # "3" this uses double variables to get var w/ string value
 ```
 
 strings
@@ -123,9 +123,14 @@ $_ = <>;
 /(.)(.)/;
 print $1 =~ /e/ ? $1 : $2 # will print "" since $1 & $2 are reassigned on the match (same with s///) use eq or assign match
 
+($a, $b) = /(.)(.)/;
+print $a =~ /e/ ? $a : $b # work
+
+# get count of match
 $_ = <>;
-($a, $b) = /(.)(.)/; # bad
-($a, $b) = () = /(.)(.)/; # need to cast to array first or it will treat as scalar
+$c = /\d/g; # bad
+($c) = /\d/g; # bad (will get first item that matched)
+$c = () = /\d/g; # need to cast to array first and turn entire array into scalar
 print $a =~ /e/ ? $a : $b # good
 
 # cool sliding window using match eval
@@ -234,6 +239,7 @@ $/
 
 # input record separator
 # defaults to newline "\n"
+# can read n chars from stdin
 
 print$_,$/ for "wow", "chicken"; # "wow\nchicken"
 
@@ -242,8 +248,11 @@ $/ = ",";
 print "$_
 " for <>; # "weird,\npeople,\nare,\ninside\n"
 
-
 print$_,$/ for "wow", "chicken"; # "wow\nchicken"
+
+# stdin: "rust"
+$/=\1;
+print $_, $/ for<> # "r\nu\ns\nt\n"
 
 # --------------------------------------------
 
@@ -715,7 +724,7 @@ lc / uc / ucfirst / lcfirst
 
 # --------------------------------------------
 
-pop / shift
+pop / shift / unshift / push
 
 # --------------------------------------------
 
@@ -792,6 +801,104 @@ sub fib {
   $n < 2 ? $n : fib ($n - 1) + fib ($n - 2)
 }
 print fib 3 # "2" # will treat $n as a global variable unless you explicitly say it's not
+```
+
+command line / shebang flags<br>
+must be on the first line or wont work
+you can mix and match these but the order does matter with -e or -E
+```pl
+-p
+# for(<>){eval '$code\n;'; print}
+
+# use the semicolon trailing semicolon to your advantage
+#!perl -p
+$_ .= "nice"; s/bruh//
+$_ .= "nice"; s;bruh; # shorter but be careful cuz it will actually replace it with \n
+
+# --------------------------------------------
+
+-n
+# for(<>){eval 'code\n;';}
+# also be careful of s;;
+
+# stdin: "e\nf"
+#!perl -n
+$a .= $_;
+print "[$_] [$a]"; # "[e\n] [e\n][f\n] [f\nf\n]"
+$a =~ s;e;f
+
+# --------------------------------------------
+
+-M
+# only useful in bash
+
+#!perl -p
+use List::Util qw(uniq);
+$_=uniq/./g 
+
+# shorter
+perl -MList::Util=uniq -pe '$_=uniq/./g'
+
+# --------------------------------------------
+
+-0
+
+# sets $/ to chr (oct (n))
+# sets to \0 if nothing provided
+
+#!perl -0
+print ord($/) # "0"
+
+#!perl -053
+print ord($/) # "43" cuz oct(53) == 43
+
+# --------------------------------------------
+
+-l
+# set $\ to $/ unless you provide an octal number after
+# for(<>){chomp; eval '$code\n;';}
+
+#!perl -053l
+
+print "neat";
+print "neat"; # neat+neat+
+
+# "fix" for previous -n flag code using tr lol
+
+# stdin: "e\nf"
+#!perl -ln
+$a.=$_;
+print "[$_] [$a]"; # "[e] [e] [f] [ff]"
+$a =~ y;e;f
+
+#!perl -l153 -053
+print $/ # "+k"
+
+# --------------------------------------------
+
+-a
+# for(<>){@F = split /\s+/, $_; eval '$code\n;';}
+# s;; trick should work i think
+
+# stdin: "egg     wow"
+
+#!perl -a
+print "@F" # "egg wow"
+
+# --------------------------------------------
+
+-F
+# same as -a but you can specify the regex
+# defaults to //
+# can omit the // if there's no literal space
+
+# stdin: "seg\nwow"
+#!perl -F
+print "@F" # "s e g\nw o w"
+
+# stdin: "s+e+g\nw+o+w"
+#!perl -F/\+/
+print "@F" # "s e g\nw o w"
 ```
 
 tips to reading perl
