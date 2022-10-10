@@ -65,6 +65,31 @@ print "$a -- $e
 "; # shorter
 ```
 
+type casting
+```pl
+print "3" + 3; # 6
+print "n" == "x"; # 1 (true since int("n") == 0)
+print "n" eq "x"; # "" (false since casting correctly)
+print 1 eq "1"; # 1
+
+$a = 0;
+$a += "3 4"; # a => 3
+$a += "3a
+4"; # a => 6
+$a += "3
+4"; # a => 9
+
+$a = 0;
+$a += 032 # a => 26
+
+$a = 0;
+$a += "032" # a => 32 doesn't cast octal string
+
+$a = 0;
+@A = "1 2 3";
+$a += "@A" # a => 1 funny way to get 1st item in numeric context
+```
+
 regex (there are definitely lots more tricks but i don't know them yet)<br>
 this is a huge foot shooter so be careful<br>
 check out the variable section after for some more regex tricks<br>
@@ -212,6 +237,37 @@ print $_ =~ y/n//d; # 4
 # squash your stuff (not needed too commonly)
 $_ = "nniiiiiiceeeee";
 print $_ =~ y/n//crs; # nnice
+```
+
+for loops (never use foreach cuz it sucks)
+another foot shooter
+```pl
+# get all input and do math on them, newline separated
+foreach $a (<>){print $a + 3, "\n"}
+for $a (<>){print $a + 3, "\n"}
+print $_ + 3, "\n" for<>;
+print $_ + 3, $/ for<>;
+
+# using $' to hold nested loop variables (MAKE SURE YOU DONT USE ANY MORE REGEX OR IT WILL REASSIGN. try to use `eq ne cmp` that kind of thing)
+$_ = <>;
+
+map{$n=$_;print $n + $_,$/}$_..99; # wont even work cuz it will reassign $_ the moment the map loop starts
+for$n($_..99){print $n + $_,$/}
+print $_ + $', $/for//..99;
+
+# another example of using it inside the for loop w/ map
+$, = $/;
+//, print map $_ + $', 1..$' for 1..99;
+
+# if the first input is 0 in a <> <> range you may run into some trouble because it will try to do character range with "0\n"
+# idk why this doesn't do the same with other numbers
+
+# stdin "0\n5"
+print$_, $/ for<>..<> # ""
+print$_, $/ for<>|0..<> # "0\n1\n2\n3\n4\n5\n"
+
+# stdin "1\n5"
+print$_, $/ for<>..<> # "1\n2\n3\n4\n5"
 ```
 
 special variables from most to least useful (how common it can be used to reduce code)<br>
@@ -544,37 +600,6 @@ $( $)
 # can kinda use like $< $>
 ```
 
-for loops (never use foreach cuz it sucks)
-another foot shooter
-```pl
-# get all input and do math on them, newline separated
-foreach $a (<>){print $a + 3, "\n"}
-for $a (<>){print $a + 3, "\n"}
-print $_ + 3, "\n" for<>;
-print $_ + 3, $/ for<>;
-
-# using $' to hold nested loop variables (MAKE SURE YOU DONT USE ANY MORE REGEX OR IT WILL REASSIGN. try to use `eq ne cmp` that kind of thing)
-$_ = <>;
-
-map{$n=$_;print $n + $_,$/}$_..99; # wont even work cuz it will reassign $_ the moment the map loop starts
-for$n($_..99){print $n + $_,$/}
-print $_ + $', $/for//..99;
-
-# another example of using it inside the for loop w/ map
-$, = $/;
-//, print map $_ + $', 1..$' for 1..99;
-
-# if the first input is 0 in a <> <> range you may run into some trouble because it will try to do character range with "0\n"
-# idk why this doesn't do the same with other numbers
-
-# stdin "0\n5"
-print$_, $/ for<>..<> # ""
-print$_, $/ for<>|0..<> # "0\n1\n2\n3\n4\n5\n"
-
-# stdin "1\n5"
-print$_, $/ for<>..<> # "1\n2\n3\n4\n5"
-```
-
 built-in functions<br>
 there are more but these are the useful ones i've found<br>
 read more here [https://perldoc.perl.org/functions](https://perldoc.perl.org/functions)
@@ -841,61 +866,10 @@ sub log10 {
 }
 ```
 
-misc
-```pl
-}{
-
-# eskimo greeting operator
-# useful when you have perl command line flags -n or -p
-# no eskimo -n for(<>) {code1}
-# eskimo -n for(<>) {code1 }{ code2}
-# with -p for(<>) {code1 }{ code2; print}
-
-# sum of inputs
-#!perl -p
-$\+=$_ }{
-
-# --------------------------------------------
-
-lvalue
-
-# another foot shooter
-# ternary binds $a and $b as lvalue so it will actually look like print + (/n/ ? $a : $b) *= 3;
-# can usually solve with brackets
-$a += 3, print /n/ ? $a : $b *= 3 for <>; # bad
-$a += 3, print /n/ ? $a : ($b *= 3) for <>; # good
-
-
-# this can also be used to your advantage
-${--$| ? a : b} += <> for %!; print "$a $b"
---$| ? $a : $b += <> for %!; print "$a $b" # shorter
-
-# --------------------------------------------
-
-my 
-# local varaible declaration
-
-# variable reset
-(@A=()), push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
-my@A, push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
-
-# recursion
-sub fib {
-  $n = pop;
-  $n < 2 ? $n : fib ($n - 1) + fib ($n - 2)
-}
-print fib 3 # "-3" # nani?!?!??!?!
-
-sub fib {
-  my $n = pop;
-  $n < 2 ? $n : fib ($n - 1) + fib ($n - 2)
-}
-print fib 3 # "2" # will treat $n as a global variable unless you explicitly say it's not
-```
-
 command line / shebang flags<br>
 must be on the first line or wont work
-you can mix and match these but the order does matter with -e or -E
+you can mix and match these but the order does matter with -e or -E<br>
+read more here [https://metacpan.org/pod/perlrun](https://metacpan.org/pod/perlrun)
 ```pl
 -p
 # for(<>){eval '$code\n;'; print}
@@ -990,6 +964,61 @@ print "@F" # "s e g\nw o w"
 #!perl -F/\+/
 print "@F" # "s e g\nw o w"
 ```
+
+misc
+```pl
+}{
+
+# eskimo greeting operator
+# useful when you have perl command line flags -n or -p
+# no eskimo -n for(<>) {code1}
+# eskimo -n for(<>) {code1 }{ code2}
+# with -p for(<>) {code1 }{ code2; print}
+
+# sum of inputs
+#!perl -p
+$\+=$_ }{
+
+# --------------------------------------------
+
+lvalue
+
+# another foot shooter
+# ternary binds $a and $b as lvalue so it will actually look like print + (/n/ ? $a : $b) *= 3;
+# you only need to worry about this if you are doing *= or += x= that kind of thing
+# can usually solve with brackets
+$a += 3, print /n/ ? $a : $b *= 3 for <>; # bad
+$a += 3, print /n/ ? $a : ($b *= 3) for <>; # good
+
+$a += 3, $b += 2, print /n/ ? $a : $b * 3 for <>; # works fine
+
+# this can also be used to your advantage
+${--$| ? a : b} += <> for %!; print "$a $b"
+--$| ? $a : $b += <> for %!; print "$a $b" # shorter
+
+# --------------------------------------------
+
+my 
+# local varaible declaration
+
+# variable reset
+(@A=()), push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
+my@A, push(@A, 1..$_), $A[0] = 3, print "@A$/" for <>;
+
+# recursion
+sub fib {
+  $n = pop;
+  $n < 2 ? $n : fib ($n - 1) + fib ($n - 2)
+}
+print fib 3 # "-3" # nani?!?!??!?!
+
+sub fib {
+  my $n = pop;
+  $n < 2 ? $n : fib ($n - 1) + fib ($n - 2)
+}
+print fib 3 # "2" # will treat $n as a global variable unless you explicitly say it's not
+```
+
 
 tips to reading perl
 you will be able to do these steps in your head as you get better
