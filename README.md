@@ -197,7 +197,7 @@ $nice =~ s/a/$&c/gi; # $nice => "acacAcAccc"
 $a = "nicen";
 print $a =~ s/n/g/gr # "giceg"
 
-# idk what /l does but EGIRL HAHAHAHA
+# /l modifies \w to match unicode but who cares about that when we got EGIRL HAHAHAHA
 $_ = "nicen";
 print s/n/"g"/egirl # "giceg"
 
@@ -619,7 +619,7 @@ glob
 reverse
 
 # reverses scalar and array
-# kindy finnicky with scalar might need to ~~ it
+# kindy finnicky with scalar might need to inchworm it
 
 print reverse "bruh"; # "bruh"
 print ~~reverse "bruh"; # "hurb"
@@ -872,7 +872,7 @@ you can mix and match these but the order does matter with -e or -E<br>
 read more here [https://metacpan.org/pod/perlrun](https://metacpan.org/pod/perlrun)
 ```pl
 -p
-# for(<>){eval '$code\n;'; print}
+# while(<>){eval '$code\n;'; print}
 
 # use the semicolon trailing semicolon to your advantage
 #!perl -p
@@ -882,7 +882,7 @@ $_ .= "nice"; s;bruh; # shorter but be careful cuz it will actually replace it w
 # --------------------------------------------
 
 -n
-# for(<>){eval 'code\n;';}
+# while(<>){eval 'code\n;';}
 # also be careful of s;;
 
 # stdin: "e\nf"
@@ -920,7 +920,7 @@ print ord($/) # "43" cuz oct(53) == 43
 
 -l
 # set $\ to $/ unless you provide an octal number after
-# for(<>){chomp; eval '$code\n;';}
+# while(<>){chomp; eval '$code\n;';}
 
 #!perl -053l
 
@@ -941,7 +941,7 @@ print $/ # "+k"
 # --------------------------------------------
 
 -a
-# for(<>){@F = split /\s+/, $_; eval '$code\n;';}
+# while(<>){@F = split /\s+/, $_; eval '$code\n;';}
 # s;; trick should work i think
 
 # stdin: "egg     wow"
@@ -971,14 +971,53 @@ misc
 
 # eskimo greeting operator
 # useful when you have perl command line flags -n or -p
-# no eskimo -n for(<>) {code1}
-# eskimo -n for(<>) {code1 }{ code2}
-# with -p for(<>) {code1 }{ code2; print}
+# no eskimo -n while(<>) {eval 'code1\n;'}
+# eskimo -n while(<>) {code1 }{ eval '$code2\n;'}
+# with -p while(<>) {code1 }{ eval 'code2\n;'; print}
 
 # sum of inputs
 #!perl -p
 $\+=$_ }{
 
+# --------------------------------------------
+
+~~
+# inchworm operator
+# force scalar context
+
+# stdin "1\nbruh\n3\na\nb\nc"
+@A = map <>, 1..<>;
+print scalar @A # length 5? what?!??!?!
+
+# stdin "1\nbruh\n3\na\nb\nc"
+@A = map ~~<>, 1..<>;
+print ~~@A # length 1? noice
+
+print reverse "bruh" # "bruh" no work cuz reverse default takes list
+print ~~reverse "bruh" # "hurb"
+
+
+# --------------------------------------------
+\
+# thelens device
+
+# max of list
+@A = (1, 2, 59);
+\@B[@A]; # causes index 0-59 to be set to undef
+
+print $#B # 59
+
+# uniq values in list
+use List::Util qw(uniq); # bad
+
+\%H{@A};
+print keys%H # good although it's random order
+print ~~%H # count of unique
+
+# can also use with input as it will cast to array
+\@B[<>];
+
+print $#B
 # --------------------------------------------
 
 lvalue
@@ -1017,6 +1056,23 @@ sub fib {
   $n < 2 ? $n : fib ($n - 1) + fib ($n - 2)
 }
 print fib 3 # "2" # will treat $n as a global variable unless you explicitly say it's not
+
+
+# --------------------------------------------
+
+redo
+# ah shit, here we go again
+# can be used for recursion as it saves $_ value on redo
+
+($_ += $_ / 3) < 30 ? redo : print $_, $/ for <>
+
+# block form
+do{$_.="bruh"}until/.{10}/;print
+{$_.="bruh";/.{10}/||redo}print # shorter
+
+# with command line flags
+#!perl -pl
+($_ += $_ / 3) < 30 && redo
 ```
 
 
