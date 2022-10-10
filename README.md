@@ -410,6 +410,27 @@ $\+=$_ for<>;print
 $\+=<>for%!;print # shorter
 
 # --------------------------------------------
+@- @+
+
+# regex start / end match positions of $& $1 $2 $3 ...
+
+$_ = "wow";
+/w/;
+print "@-" # 0
+
+# global doesn't do anything unless you use sub or something
+/w/g;
+print "@-" # "0"
+
+/w(.)/;
+print "@-" # "0 1"
+
+
+/w(.+)/;
+print "@-" # "0 1"
+print "@+" # "3 3" # since $& and $1 both end at 3
+
+# --------------------------------------------
 
 $=
 
@@ -687,7 +708,12 @@ print+($a += 3),"nice" # "6nice"
 
 # --------------------------------------------
 
-printf
+printf / sprintf
+
+# like printf / sprintf in c
+
+$_ = sprintf "%b", <>;
+printf "%b", <>;
 
 # --------------------------------------------
 
@@ -708,7 +734,34 @@ print # "baa"
 
 # --------------------------------------------
 
+hex / oct
+# convert from hex, oct, binary to dec
+
+print hex "3a"; "58"
+print oct "x" . "3a"; "58"
+print oct b . "3a"; "58"
+print oct 0 . "3a"; "58"
+
+$_ = "032";
+print oct; "26"
+
+# --------------------------------------------
+
 vec
+
+# string indexing thing using bits
+# bit num have to be power of 2
+# i dont use it too much cuz im too noob
+# usually list are shorter 
+
+$a = "chicken";
+vec($a, 0, 8) = ord("f"); # 8 bits index 0 from right to left
+print $a # "fhicken"
+
+
+$a = "chicken";
+print vec($a, 0, 8) # 99 (ord of "c")
+print vec($a, 0, 16) # 25448 (oct b . sprintf "%08b%08b", ord("c"), ord("h"))
 
 # --------------------------------------------
 
@@ -722,33 +775,70 @@ unpack
 
 lc / uc / ucfirst / lcfirst
 
+# string func
+# lower upper upper-first-char lower-first-char
+
+print lcfirst "BRUH" # "bRUH"
+
 # --------------------------------------------
 
 pop / shift / unshift / push
+# add any amount of items to front / back or remove first / last
+
+@A = (1, 2, 3);
+print shift @A # "1"
+unshift @A, "wow" # @A => ("wow", 2, 3)
+print pop @A # "3"
+push @A, "shirt" # @A => ("wow", 2, "shift")
 
 # --------------------------------------------
 
 keys
-
-# --------------------------------------------
-
-hex / oct
+# keys of a hashmap as a list
 
 # --------------------------------------------
 
 sqrt
+# lower precedence **.5
+
+$_ = 32;
+print sqrt$_*=3;
+print+($_*=3)**.5;
 
 # --------------------------------------------
 
 pos
+# position of regex match for global match
+# kinda like @+ for each match
+# kinda like @- for substitution eval
+# idk dont really use this often
+
+$a = "wow";
+while (/w/g) {
+	print pos $a # "1\n3"
+}
+
+$a =~ s/w/print pos $a/ge; # "02"
 
 # --------------------------------------------
 
 chr / ord
+# character representation of number
+# numeric representation of character
 
 # --------------------------------------------
 
 sin / cos / log
+# some math functions
+
+sub tan {
+	my $n = pop;
+	sin ($n) / cos ($n)
+}
+
+sub log10 {
+	log(pop) / log(10)
+}
 ```
 
 misc
